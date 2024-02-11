@@ -3,6 +3,8 @@
 #include "pinout.h"
 
 #ifdef LIS2DW_SUPPORT
+#define GRAVITY_COMPENSATION 980 // 1G = 980 cm/sec^2
+#define ACC_SCALE 3
 
 // #define LIS2DW12_DEBUG
 
@@ -28,9 +30,13 @@ void lis2dw12_task(void * parameter) {
     for(;;) {
         lis2dw12.Get_X_Axes(lis2dw12_acc); // get X Y and Z data at once
         // Due to installation, y and z need to be exchanged
+        // int32_t tmp = lis2dw12_acc[1];
+        // lis2dw12_acc[1] = lis2dw12_acc[2];
+        // lis2dw12_acc[2] = tmp;
+        lis2dw12_acc[0] *= ACC_SCALE;
         int32_t tmp = lis2dw12_acc[1];
-        lis2dw12_acc[1] = lis2dw12_acc[2];
-        lis2dw12_acc[2] = tmp;
+        lis2dw12_acc[1] = lis2dw12_acc[2] * ACC_SCALE;
+        lis2dw12_acc[2] = (tmp + GRAVITY_COMPENSATION) * ACC_SCALE; // compensate for gravity on Z axix
 #ifdef LIS2DW12_DEBUG
         // Then print out the raw data
         Serial.println("\r\n******** lis2dw12 data *****\r\n");
